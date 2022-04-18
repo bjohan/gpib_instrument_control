@@ -119,7 +119,7 @@ class Lecroy9354Tm(my_gpib.MyGpib):
 
     def setTrigCoupling(self, src, cpl):
         aux.checkParam(src, ["C1", "C2", "C3", "C4", "EX", "EX10"], "Not a valid trigger source")
-        aux.checkParam(cpl, ['AC', 'DC', 'HFREJ', 'LFREJ', 'AUTO'])
+        aux.checkParam(cpl, ['AC', 'DC', 'HFREJ', 'LFREJ', 'AUTO'], "Invalid coupling type")
         self.write("%s:TRCP %s"%(src, cpl))
 
     def getTrigCoupling(self, src):
@@ -139,7 +139,7 @@ class Lecroy9354Tm(my_gpib.MyGpib):
 
     def setTrigLevel(self, src, lvl):
         aux.checkParam(src, ["C1", "C2", "C3", "C4", "EX", "EX10"], "Not a valid trigger source")
-        self.write("%s:TRLV %f"%(src, lv))
+        self.write("%s:TRLV %f"%(src, lvl))
 
     def getTrigLevel(self, src):
         aux.checkParam(src, ["C1", "C2", "C3", "C4", "EX", "EX10"], "Not a valid trigger source")
@@ -156,7 +156,7 @@ class Lecroy9354Tm(my_gpib.MyGpib):
     def setTrigSlope(self, src, slope):
         aux.checkParam(src, ["C1", "C2", "C3", "C4", "EX", "EX10"], "Not a valid trigger source")
         aux.checkParam(slope, ["NEG", "POS"], "Not a valid slope")
-        self.write("%s:TRSL %f"%(src, slope))
+        self.write("%s:TRSL %s"%(src, slope))
 
     def getTrigSlope(self, src):
         aux.checkParam(src, ["C1", "C2", "C3", "C4", "EX", "EX10"], "Not a valid trigger source")
