@@ -56,12 +56,13 @@ class Hp8753A(my_gpib.MyGpib):
         d = [struct.unpack('>f', data[i:i+4])[0] for i in range(4, len(data),8)]
         return d
 
-    def readComplexTraceData(self):
+    def readComplexTraceData(self, restore=True):
         self.write('LINM')
         real = self.readTrace()
         self.write('PHAS')
         imag = self.readTrace()
-        self.write('LOGM')
+        if restore:
+            self.write('LOGM')
         return np.array(real)*np.exp(np.array(imag)*1j*np.pi/180.0)
 
 
@@ -69,20 +70,20 @@ class Hp8753A(my_gpib.MyGpib):
         checkParam(param.upper(), ['S11', 'S12', 'S21', 'S22'], 'Invalid S-paramter')
         self.write(param.upper()+';')
 
-    def readSParameter(self, param):
+    def readSParameter(self, param, restore=True):
         #print("Measuring", param)
         self.setSParameter(param)
         #self.write(param+';')
         self.write('OPC?;SING;')
         self.read()
-        return self.readComplexTraceData()
+        return self.readComplexTraceData(restore=restore)
 
 
-    def readSParameters(self):
-        s11=self.readSParameter('S11')
-        s21=self.readSParameter('S21')
-        s12=self.readSParameter('S12')
-        s22=self.readSParameter('S22')
+    def readSParameters(self, restore=True):
+        s11=self.readSParameter('S11', restore=False)
+        s21=self.readSParameter('S21', restore=False)
+        s12=self.readSParameter('S12', restore=False)
+        s22=self.readSParameter('S22', restore=restore)
         return s11, s12, s21, s22
 
     def sParametersToNetwork(self, f, s11, s12, s21, s22):
@@ -168,11 +169,16 @@ class Hp8753A(my_gpib.MyGpib):
                 nel=1601;
             fs=flist[0:nel]
             flist=flist[nel:]
+
+            restore=False
+            if len(flist) < 2:
+                restore=True
+
             self.setStartFrequency(np.min(fs))
             self.setStopFrequency(np.max(fs))
             self.setPoints(self.roundUpToValidPoints(nel))
 
-            t11,t12,t21,t22=self.readSParameters();
+            t11,t12,t21,t22=self.readSParameters(restore=restore);
             ss11=np.concatenate([ss11, t11]);
             ss12=np.concatenate([ss12, t12]);
             ss21=np.concatenate([ss21, t21]);

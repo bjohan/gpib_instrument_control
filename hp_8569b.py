@@ -65,7 +65,7 @@ class Hp8569B(my_gpib.MyGpib):
     def updateTrace(self):
         self.write('SF')
         while True:
-            s=ord(self.query('MS'))
+            s=ord(self.query('MS').decode('UTF-8'))
             if s == 0:
                 break
 
@@ -81,6 +81,7 @@ if __name__ == '__main__':
     ax2 = plt.subplot(3,1,2)
     ax3 = plt.subplot(3,1,3)
     while True:
+        sa.updateTrace()
         f, t=sa.readTrace();
         t=np.array(t)
         if hist is None:
