@@ -5,10 +5,20 @@ import gpib
 class Hp5340A(my_gpib.MyGpib):
     def __init__(self, addr=18):
         my_gpib.MyGpib.__init__(self, addr);
-        self.write(b'O')
-        self.write(b'J')
+        self.write(b'H')
+        self.write(b'0')
+        self.write(b'P')
         self.write(b'@')
+        self.write(b'J')
         self.write(b'L')
+        self.write(b'N')
+        #self.write(b'H')
+        self.write(b'O')
+        self.setResolution(4)
+        #self.write(b'J')
+        #self.write(b'K')
+        #self.write(b'@')
+        #self.write(b'L')
 
     def __delete__(self):
         self.write(b'N')
@@ -45,7 +55,8 @@ class Hp5340A(my_gpib.MyGpib):
             #print("Attempting to read try %d of %d"%(a, tries))
             try:
                 c=self.read(readSz=readSz)
-            except gpib.GpibError:
+            except gpib.GpibError as e:
+                print(e)
                 pass
             else:
                 return c
@@ -58,6 +69,7 @@ class Hp5340A(my_gpib.MyGpib):
                 break
 
     def readValue(self):
+        #self.write(b'H')
         try:
             c=self.readSafe(readSz=16)
         except gpib.GpibError:

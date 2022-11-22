@@ -18,6 +18,44 @@ class MyGpib:
             else:
                 print(s, end='', flush=True)
 
+    def lines(self):
+        return gpib.lines(0)
+
+    def getHsDict(self):
+        d={}
+        ls = self.lines()
+
+        if ls & gpib.ValidDAV:
+            d['DAV']=ls&gpib.BusDAV
+
+        if ls & gpib.ValidNDAC:
+            d['NDAC']=ls&gpib.BusNDAC
+
+        if ls & gpib.ValidNRFD:
+            d['NRFD']=ls&gpib.BusNRFD
+
+        if ls & gpib.ValidIFC:
+            d['IFC']=ls&gpib.BusIFC
+
+        if ls & gpib.ValidREN:
+            d['REN']=ls&gpib.BusREN
+
+        if ls & gpib.ValidSRQ:
+            d['SRQ']=ls&gpib.BusSRQ
+
+        if ls & gpib.ValidATN:
+            d['ATN']=ls&gpib.BusATN
+
+        if ls & gpib.ValidEOI:
+            d['EOI']=ls&gpib.BusEOI
+
+
+        return d
+
+
+    def testSrq(self):
+        return self.lines()&gpib.BusSRQ
+
     def ifc(self):
         self.verbosePrint("IFC")
         return gpib.interface_clear(0)
