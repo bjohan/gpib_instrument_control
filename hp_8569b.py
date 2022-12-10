@@ -25,7 +25,7 @@ class Hp8569B(my_gpib.MyGpib):
             return np.linspace(1.7e9,22e9, 481);
         if sp == -1:
             if cf < 1.7e9:
-                return np.linspace(0.01e9,1.7e9, 481);
+                return np.linspace(-25e6,1.8e9, 481);
             if cf < 4.1e9:
                 return np.linspace(1.7e9,4.1e9, 481);
             if cf < 8.5e9:
