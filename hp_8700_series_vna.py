@@ -15,10 +15,11 @@ class Hp8753A(my_gpib.MyGpib):
     def __init__(self, addr=17):
         my_gpib.MyGpib.__init__(self, addr);
         idStr=self.query("*IDN?")
+        print(idStr)
         refStr=b'HEWLETT PACKARD,8753A,0,1.00\n'
         refStr=b'HEWLETT PACKARD,8703A,0,1.00\n'
         if idStr!=refStr:
-            if "8753" not in idStr:
+            if b"8753" not in idStr:
                 raise Exception("Instrument att address {addr} does not seem to be a 8753")
             else:
                 print("Warning, IDN response does not completely match")
@@ -212,11 +213,17 @@ if __name__ == '__main__':
     parser.add_argument('-wmf', '--write-matlab-file', type=argparse.FileType('wb'), help='Write measured data in matlab format to specified file')
     parser.add_argument('-od', '--open-deembed', type=argparse.FileType('rb'), help='Use s11/2 and s22/2 from specified touchstone file to deembed s11 and s22 measurements');
     parser.add_argument('-td', '--through-deembed', type=argparse.FileType('rb'), help='Use s21 and s12 from specified touchstone file to deembed s12 and s21 measurements');
-    parser.add_argument('-hfr', '--high-frequency-resolution', action='store_true', help='Divide band in to subbands to set frequency resolution to 1MHz')
+    parser.add_argument('-hfr', '--high-frequency-resolution', help='Divide band in to subbands to set frequency resolution specified by this argument')
     parser.add_argument('-p', '--plot', action='store_true', help='Show plot of measured parameters');
-    instr = Hp8753A()
-
+    parser.add_argument('-g', '--gpib', help="Gpib address") 
+    
     pa=parser.parse_args()
+    
+    if pa.gpib:
+        instr = Hp8753A(addr=int(pa.gpib))
+    else:
+        instr = Hp8753A()
+
     if pa.preset_instrument:
         instr.reset()
         instr.preset()
@@ -238,41 +245,12 @@ if __name__ == '__main__':
         td=skrf.network.Network(file=pa.through_deembed.name)
 
 
-    if pa.high_frequency_resolution:
-        fres=1e6;
+    if pa.high_frequency_resolution is not None:
+        fres=float(pa.high_frequency_resolution);
         f=instr.frequencies()
         fstart=np.min(f)
         fstop=np.max(f)
-        f=np.linspace(fstart, fstop, int((fstop-fstart)/fres)+1)
-        flist=f
-        instr.write('POIN 1601;')
-        ss11=np.array(());
-        ss12=np.array(());
-        ss21=np.array(());
-        ss22=np.array(());
-        mf=np.array(());
-        while True:
-            print("Frequencies remaining", len(flist));
-            if len(flist) < 2:
-                break
-            nel=len(flist)
-            if nel > 1601:
-                nel=1601;
-            fs=flist[0:nel]
-            flist=flist[nel:]
-            instr.setStartFrequency(np.min(fs))
-            instr.setStopFrequency(np.max(fs))
-            t11,t12,t21,t22=instr.readSParameters();
-            print(t11)
-            ss11=np.concatenate([ss11, t11]);
-            ss12=np.concatenate([ss12, t12]);
-            ss21=np.concatenate([ss21, t21]);
-            ss22=np.concatenate([ss22, t22]);
-            mf=np.concatenate([mf, instr.frequencies()])
-            print(len(ss11))
-        f=mf
-        instr.setStartFrequency(fstart)
-        instr.setStopFrequency(fstop)
+        f, ss11, ss12, ss21, ss22 = instr.getHighResolutionSparameters(fstart, fstop, fres)
     else:
         f=instr.frequencies()
         ss11, ss12, ss21, ss22 = instr.readSParameters()
