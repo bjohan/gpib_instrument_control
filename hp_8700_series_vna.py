@@ -123,6 +123,12 @@ class Hp8753A(my_gpib.MyGpib):
     def cw(self, freq):
         self.write('CWFREQ  %d;'%(freq))
 
+    def setIfBandwidth(self, bw):
+        self.write("IFBW %d"%(int(bw)))
+
+    def ifBandwidth(self):
+        return float(self.query("IFBW?"))
+
     def chan(self, ch):
         checkParam(ch, [1, 2], 'Invalid channel number')
         self.write('OPC?;CHAN%d;');
